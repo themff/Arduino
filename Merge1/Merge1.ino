@@ -75,6 +75,6 @@ void loop() {
     digitalWrite(10, LOW);
     digitalWrite(11, LOW);
 
-  Serial.println("Motor Detenido"); //Fin 
+  Serial.println("Motor Detenido"); //Fin .
   }
 }
