@@ -26,11 +26,11 @@ void setup() {
 
 void loop() {
 
-  pasos= -24; //Le doy un valor a pasos para que vuelva mientras busca el antirebote
+  pasos= -24; //Le doy un valor a pasos para que vuelva mientras busca el Final de carrera
   val = digitalRead(4); //leo el FC
   delay(2);           //Antirebote
   val = digitalRead(4); //leo el FC
-  while(val == 0 && con == 0 ) // el con es mi flag, cuando toque el antirebote val sera 1 y con se pone a 1,
+  while(val == 0 && con == 0 ) // el con es mi flag, cuando toque el Final de carrera val sera 1 y con se pone a 1,
                                //asì cuando vuelve a pasar por el while, con nunca mas será 0.
   {  
   motor1.step(pasos); //arranca girando el motor hacia la izquierda en busca del FC.

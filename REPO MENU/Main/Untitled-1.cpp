@@ -684,6 +684,12 @@ void menuAction(unsigned int menuCode) {
         val = digitalRead(4); //leo el FC
         delay(2);           //Antirebote
         val = digitalRead(4); //leo el FC
+        lcd.clear();
+        lcd.setCursor(1,0); //
+        lcd.print("Buscando el Final");
+        lcd.setCursor(0,1);
+        lcd.print("de carrera");
+
         while(val == 0 && con == 0) // el con es mi flag, cuando toque el Final de carrera val sera 1 y con se pone a 1,
                                     //asì cuando vuelve a pasar por el while, con nunca mas será 0.
         {  
@@ -692,16 +698,24 @@ void menuAction(unsigned int menuCode) {
         delay(1);           //Antirebote
         val = digitalRead(4); //leo el FC
 
-        Serial.println("Buscando el antirebote");
+        Serial.println("Buscando el FC");
+        
         if(digitalRead(4)== 1 && con == 0 )
           {
-            Serial.println("Antirebote encontrado");
+            Serial.println("FC encontrado");
+            
             digitalWrite(8, LOW);     // desenergiza todas las bobinas
             digitalWrite(9, LOW);
             digitalWrite(10, LOW);
             digitalWrite(11, LOW);
 
             Serial.println("Motor Detenido"); //Fin .
+            lcd.clear();
+            lcd.setCursor(0,0);
+            lcd.print("FC Encontrado");
+            lcd.setCursor(0,1);
+            lcd.print("Motor Detenido");
+            delay(2000);
           }
           
         }
@@ -715,6 +729,10 @@ void menuAction(unsigned int menuCode) {
         digitalWrite(11, LOW);
 
         Serial.println("Motor Detenido");
+        lcd.clear();
+        lcd.setCursor(0,0);
+        lcd.print("Motor detenido");
+        delay(1000);
 
         break;
 
