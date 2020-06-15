@@ -1,10 +1,19 @@
-/* Mergeamos lo descargado con la pantalla y el encoder, sin motor por ahora. 15-6*/
+
+
+//MOTOR IN1 2 3 4 PINES PLACA 8 9 10 11
+//FINAL DE CARRERA PIN4
 
 //YWROBOT
 //Compatible with the Arduino IDE 1.0
 //Library version:1.1
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
+#include <Stepper.h>      // incluye libreria stepper Motor
+Stepper motor1(2048, 8, 10, 9, 11);   // pasos completos, pines de salida.
+int val = 0;
+int con = 0;
+int pasos = 0;
+int botoneta = 0;
 
 //LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
@@ -73,6 +82,12 @@ void setup() {
 
   lcd.init();
   lcd.backlight();
+  
+  //MOTOR
+  motor1.setSpeed(11);       // en RPM (valores de 1, 2 o 3 para 28BYJ-48)
+  pinMode(LED_BUILTIN, OUTPUT); //Led del arduino como chivo.
+  pinMode(4,INPUT);             //Pin 4 entrada del Final de carrera
+  // FIN MOTOR
 }
 
 void loop() {
@@ -390,6 +405,9 @@ void menuInit() {
       menu[i++].text = "MENU ANTERIOR";
       menu[i].code = 31;
       menu[i++].text = "CUANTOS PASOS?";
+        menu[i].code = 311;
+        menu[i++].text = "PASOS :";
+           
 
   
   menu[i].code = 4;
@@ -405,50 +423,8 @@ void menuInit() {
         menu[i].code = 421;
         menu[i++].text = "DELAY DURATION IN MINUTES:";
   /*
-  menu[i].code = 5;
-  menu[i++].text = "DRAIN PUMP/VALVE";
-      menu[i].code = 50;
-      menu[i++].text = "PREVIOUS MENU";
-      menu[i].code = 51;
-      menu[i++].text = "DRAIN PUMP SPEED";
-        menu[i].code = 511;
-        menu[i++].text = "SET DRAIN PUMP POWER (DEFAULT 255):";
-
-  menu[i].code = 6;
-  menu[i++].text = "EMERGENCY SHUTDOWN";
-    menu[i].code = 60;
-    menu[i++].text = "PREVIOUS MENU";
-    menu[i].code = 61;
-    menu[i++].text = "DRAIN DURATION";
-      menu[i].code = 611;
-      menu[i++].text = "EMERGENCY DRAIN DURATION (MINUTES):";
-    menu[i].code = 62;
-    menu[i++].text = "ALLOW AUTO RESET";
-      menu[i].code = 621;
-      menu[i++].text = "ENABLE AUTO RESET?";
-    menu[i].code = 63;
-    menu[i++].text = "AUTO RESET DELAY";
-      menu[i].code = 631;
-      menu[i++].text = "SET AUTO RESET DELAY (HOURS):";
-    menu[i].code = 64;
-    menu[i++].text = "MAX # AUTO RESETS";
-      menu[i].code = 641;
-      menu[i++].text = "MAX # OF AUTO RESETS ALLOWED:";
   
-  menu[i].code = 7;
-  menu[i++].text = "RESET ERRORS";
-    menu[i].code = 71;
-    menu[i++].text = "RESET ALL ERRORS?";
-  
-  menu[i].code = 8;
-  menu[i++].text = "MAINTENANCE";
-    menu[i].code = 80;
-    menu[i++].text = "PREVIOUS MENU";
-    menu[i].code = 81;
-    menu[i++].text = "HOLD TO OPEN DRAIN";
-    menu[i].code = 82;
-    menu[i++].text = "HOLD TO OPEN INLET";
-*/
+  */
  maxMenuItems = i + 1;
 
 }
@@ -701,66 +677,56 @@ void menuAction(unsigned int menuCode) {
   
       switch (menuCode) {
 
-        case 11:  //set current time
 
-        if (subMenuActive != 3) {  //initialize the subMenu3
+        case 1: //BUSCAR CERO
+        con = 0;
+        pasos= -24; //Le doy un valor a pasos para que vuelva mientras busca el Final de carrera
+        val = digitalRead(4); //leo el FC
+        delay(2);           //Antirebote
+        val = digitalRead(4); //leo el FC
+        while(val == 0 && con == 0) // el con es mi flag, cuando toque el Final de carrera val sera 1 y con se pone a 1,
+                                    //asì cuando vuelve a pasar por el while, con nunca mas será 0.
+        {  
+        motor1.step(pasos); //arranca girando el motor hacia la izquierda en busca del FC.
+        val = digitalRead(4); //leo el FC
+        delay(1);           //Antirebote
+        val = digitalRead(4); //leo el FC
+
+        Serial.println("Buscando el antirebote");
+        if(digitalRead(4)== 1 && con == 0 )
+          {
+            Serial.println("Antirebote encontrado");
+            digitalWrite(8, LOW);     // desenergiza todas las bobinas
+            digitalWrite(9, LOW);
+            digitalWrite(10, LOW);
+            digitalWrite(11, LOW);
+
+            Serial.println("Motor Detenido"); //Fin .
+          }
           
-          lcd.clear();
-          lcd.setCursor(0,0);
-          lcd.print("CURRENT TIME:");
-          subMenuActive = 3;
-          subMenuPos = 0;
-          subMenuClick = 0;
-          subMenu3Update(0); //calls subMenu3Update with 0 (no action)
-          
-        } else if (subMenuActive == 3) {  //already initialized
-          
-          subMenuActive = 0;  //deactivate submenu, activate main menu
-          lcd.clear();
-          menuPos = 1;
-          updateMenuDisplay(menuPos);
-          //code to set time variables
         }
-        
         break;
-        
-        case 211: //set opMode to continuous mode
- 
-          lcd.clear();
-          lcd.setCursor(0,0);
-          lcd.print("CONTINUOUS MODE");
-          lcd.setCursor(0,1);
-          lcd.print("ACTIVATED..");
-          
-          menuPos = 2;  //return to a previous menu location
-          delay(1000);
-          updateMenuDisplay(menuPos);
-          
-          break;
 
-          case 221: //set opMode to daily volume target mode
- 
-          lcd.clear();
-          lcd.setCursor(0,0);
-          lcd.print("DAILY VOLUME MODE");
-          lcd.setCursor(0,1);
-          lcd.print("ACTIVATED..");
-          
-          menuPos = 222;  //return to a previous menu location
-          delay(1000);
-          updateMenuDisplay(menuPos);
-          
-          break;
+        case 2: //PARAR MOTOR
 
-        case 2221: //setting daily target volume
+        digitalWrite(8, LOW);     // desenergiza todas las bobinas
+        digitalWrite(9, LOW);
+        digitalWrite(10, LOW);
+        digitalWrite(11, LOW);
 
-          if (subMenuActive != 1) {    //if subMenu1 is not active, activate it
+        Serial.println("Motor Detenido");
+
+        break;
+
+        case 311:  //IR Y VENIR
+
+        if (subMenuActive != 1) {    //if subMenu1 is not active, activate it
 
             lcd.clear();
             lcd.setCursor(0,0);
-            lcd.print("DAILY TARGET VOLUME:");
+            lcd.print("CANTIDAD DE PASOS:");
             subMenuActive = 1;    //activate subMenu1
-            subMenuPos = 10;     //sub menu initialization, set it to current daily volume target
+            subMenuPos = 100;     //sub menu initialization, set it to current daily volume target
             subMenuClick = 0;
             subMenu1Update(0);  //calls subMenu1Update with 0 (no action)
 
@@ -772,425 +738,22 @@ void menuAction(unsigned int menuCode) {
             
             lcd.clear();
             lcd.setCursor(0,0);
-            lcd.print("DAILY TARGET VOLUME");
+            lcd.print("PASOS SETEADOS A");
             lcd.setCursor(0,1);
             lcd.print("SET TO ");
             lcd.print(subMenuPos);
-            lcd.print(" LITRES");
-            menuPos = 222;  //return to previous main menu position
+            lcd.print(" PASOS");
+            delay(1000);
+            menuPos = 3;  //return to previous main menu position
             
             delay(1000);
             updateMenuDisplay(menuPos);
 
           }
-          
-          break;
-
-
-        case 2231:  //set time for daily water change
-
-        if (subMenuActive != 3) {  //initialize the subMenu3
-          
-          lcd.clear();
-          lcd.setCursor(0,0);
-          lcd.print("START DAILY WATER CHANGE AT");
-          subMenuActive = 3;
-          subMenuPos = 0;
-          subMenuClick = 0;
-          subMenu3Update(0); //calls subMenu3Update with 0 (no action)
-          
-        } else if (subMenuActive == 3) {  //already initialized
-          
-          subMenuActive = 0;  //deactivate submenu, activate main menu
-          lcd.clear();
-          menuPos = 1;
-          updateMenuDisplay(menuPos);
-          //code to set time variables
-        }
         
         break;
 
-        case 231:
-          //set opMode to top-off only mode
-
-          lcd.clear();
-          lcd.setCursor(0,0);
-          lcd.print("TOP-OFF ONLY MODE");
-          lcd.setCursor(0,1);
-          lcd.print("ACTIVATED..");
-          menuPos = 2;  //return to a previous menu location
-          delay(1000);
-          updateMenuDisplay(menuPos);
-          break;
-
-        case 241:
-          //set opMode to daily timer mode
-
-          lcd.clear();
-          lcd.setCursor(0,0);
-          lcd.print("DAILY TIMER MODE");
-          lcd.setCursor(0,1);
-          lcd.print("ACTIVATED..");
-          menuPos = 242;  //return to a previous menu location
-          
-          delay(1000);
-          updateMenuDisplay(menuPos);
-          break;
-
-
-        case 2421: //setting drain duration in minutes
-
-          if (subMenuActive != 1) {    //if subMenu1 is not active, activate it
-
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("DRAIN FOR THIS MANY MINUTES:");
-            subMenuActive = 1;    //activate subMenu1
-            subMenuPos = 10;     //sub menu initialization, set it to current daily volume target
-            subMenuClick = 0;
-            subMenu1Update(0);  //calls subMenu1Update with 0 (no action)
-
-          } else if (subMenuActive == 1) {    //if subMenu1 is already active, execute action from sub menu1 and activate main menu
-
-            subMenuActive = 0;  //deactivate submenu, activate main menus
-            
-            //set daily target variable to subMenuPos;
-            
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("DRAIN DURATION");
-            lcd.setCursor(0,1);
-            lcd.print("SET TO ");
-            lcd.print(subMenuPos);
-            lcd.print(" MINUTES");
-            menuPos = 242;  //return to previous main menu position
-            
-            delay(1000);
-            updateMenuDisplay(menuPos);
-
-          }
-          
-          break;
-
-        case 2431:  //set time for daily water change
-
-        if (subMenuActive != 3) {  //initialize the subMenu3
-          
-          lcd.clear();
-          lcd.setCursor(0,0);
-          lcd.print("START DAILY WATER CHANGE AT");
-          subMenuActive = 3;
-          subMenuPos = 0;
-          subMenuClick = 0;
-          subMenu3Update(0); //calls subMenu3Update with 0 (no action)
-          
-        } else if (subMenuActive == 3) {  //already initialized
-          
-          subMenuActive = 0;  //deactivate submenu, activate main menu
-          lcd.clear();
-          menuPos = 1;
-          updateMenuDisplay(menuPos);
-          //code to set time variables
-        }
         
-        break;
-          
-
-        case 311: //setting calibration factor
-          
-          break;
-
-        case 411: //low pressure enable/disable
-          //menuPos = 41; //return to a previous menu position;
-          if (subMenuActive != 2) {    //if subMenu2 is not active, activate it
-            
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("ENABLE LOW PRESSURE SWITCH?");
-            
-            subMenuActive = 2;  //activate subMenu2
-            subMenuPos = 1;     //sub menu initialization, set it to current setting
-            subMenuClick = 0;
-            subMenu2Update(0);  //calls subMenu2Update with zero (no action)
-
-            
-
-          } else if (subMenuActive == 2) {    //if subMenu2 is already active, execute action from sub menu2
-            
-            subMenuActive = 0;  //activate main menus
-            //set daily target variable to subMenuPos;
-
-            lcd.clear();
-            lcd.setCursor(0,0);
-            if (subMenuPos == 1) {
-              lcd.print("LOW PRESSURE SWITCH ENABLED");
-              
-            } else {
-              lcd.print("LOW PRESSURE SWITCH DISABLED");
-            }
-            
-            menuPos = 41; //next menu position;
-            
-            delay(1000);
-            updateMenuDisplay(menuPos);
-            
-          }
-
-          break;
-
-        case 421: //setting delay duration in minutes
-
-          if (subMenuActive != 1) {    //if subMenu1 is not active, activate it
-
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("DELAY FILLING FOR THIS MANY MINUTES:");
-            subMenuActive = 1;    //activate subMenu1
-            subMenuPos = 10;     //sub menu initialization, set it to current daily volume target
-            subMenuClick = 0;
-            subMenu1Update(0);  //calls subMenu1Update with 0 (no action)
-
-          } else if (subMenuActive == 1) {    //if subMenu1 is already active, execute action from sub menu1 and activate main menu
-
-            subMenuActive = 0;  //deactivate submenu, activate main menus
-            
-            //set daily target variable to subMenuPos;
-            
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("DELAY DURATION");
-            lcd.setCursor(0,1);
-            lcd.print("SET TO ");
-            lcd.print(subMenuPos);
-            lcd.print(" MINUTES");
-            menuPos = 4;  //return to previous main menu position
-            
-            delay(1000);
-            updateMenuDisplay(menuPos);
-
-          }
-          
-          break;
-
-        case 511: //setting drain pump power level
-
-          if (subMenuActive != 1) {    //if subMenu1 is not active, activate it
-
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("SET DRAIN PUMP POWER (DEFAULT 255):");
-            subMenuActive = 1;    //activate subMenu1
-            subMenuPos = 10;     //sub menu initialization, set it to current daily volume target
-            subMenuClick = 0;
-            subMenu1Update(0);  //calls subMenu1Update with 0 (no action)
-
-          } else if (subMenuActive == 1) {    //if subMenu1 is already active, execute action from sub menu1 and activate main menu
-
-            subMenuActive = 0;  //deactivate submenu, activate main menus
-            
-            //set daily target variable to subMenuPos;
-            
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("DRAIN PUMP POWER");
-            lcd.setCursor(0,1);
-            lcd.print("SET TO ");
-            lcd.print(subMenuPos);
-            lcd.print("");
-            menuPos = 5;  //return to previous main menu position
-            
-            delay(1000);
-            updateMenuDisplay(menuPos);
-
-          }
-          
-          break;
-
-        case 611: //ESD drain duration
-
-          if (subMenuActive != 1) {    //if subMenu1 is not active, activate it
-
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("SET EMERGENCY DRAIN DURATION:");
-            subMenuActive = 1;    //activate subMenu1
-            subMenuPos = 10;     //sub menu initialization, set it to current daily volume target
-            subMenuClick = 0;
-            subMenu1Update(0);  //calls subMenu1Update with 0 (no action)
-
-          } else if (subMenuActive == 1) {    //if subMenu1 is already active, execute action from sub menu1 and activate main menu
-
-            subMenuActive = 0;  //deactivate submenu, activate main menus
-            
-            //set daily target variable to subMenuPos;
-            
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("ESD DRAIN DURATION");
-            lcd.setCursor(0,1);
-            lcd.print("SET TO ");
-            lcd.print(subMenuPos);
-            lcd.print(" MINUTES");
-            menuPos = 61;  //return to previous main menu position
-            
-            delay(1000);
-            updateMenuDisplay(menuPos);
-
-          }
-          
-          break;
-
-        case 621: //ESD auto reset enable/disable
-          //menuPos = 41; //return to a previous menu position;
-          if (subMenuActive != 2) {    //if subMenu2 is not active, activate it
-            
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("ENABLE AUTO RESET ESD?");
-            
-            subMenuActive = 2;  //activate subMenu2
-            subMenuPos = 1;     //sub menu initialization, set it to current setting
-            subMenuClick = 0;
-            subMenu2Update(0);  //calls subMenu2Update with zero (no action)
-
-            
-
-          } else if (subMenuActive == 2) {    //if subMenu2 is already active, execute action from sub menu2
-            
-            subMenuActive = 0;  //activate main menus
-            //set daily target variable to subMenuPos;
-
-            lcd.clear();
-            lcd.setCursor(0,0);
-            if (subMenuPos == 1) {
-              lcd.print("ESD AUTO RESET ENABLED");
-              
-            } else {
-              lcd.print("ESD AUTO RESET DISABLED");
-            }
-            
-            menuPos = 63; //next menu position;
-            
-            delay(1000);
-            updateMenuDisplay(menuPos);
-            
-          }
-
-          break;
-
-        case 631: //ESD auto reset delay
-
-          if (subMenuActive != 1) {    //if subMenu1 is not active, activate it
-
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("SET ESD AUTO RESET DELAY (HOURS):");
-            subMenuActive = 1;    //activate subMenu1
-            subMenuPos = 10;     //sub menu initialization, set it to current daily volume target
-            subMenuClick = 0;
-            subMenu1Update(0);  //calls subMenu1Update with 0 (no action)
-
-          } else if (subMenuActive == 1) {    //if subMenu1 is already active, execute action from sub menu1 and activate main menu
-
-            subMenuActive = 0;  //deactivate submenu, activate main menus
-            
-            //set daily target variable to subMenuPos;
-            
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("ESD AUTO RESET DELAY");
-            lcd.setCursor(0,1);
-            lcd.print("SET TO ");
-            lcd.print(subMenuPos);
-            lcd.print(" HOURS");
-            menuPos = 64;  //return to previous main menu position
-            
-            delay(1000);
-            updateMenuDisplay(menuPos);
-
-          }
-          
-          break;
-
-        case 641: //Setting # of ESD auto reset allowed
-
-          if (subMenuActive != 1) {    //if subMenu1 is not active, activate it
-
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("MAX # OF ESD AUTO RESETS ALLOWED:");
-            subMenuActive = 1;    //activate subMenu1
-            subMenuPos = 10;     //sub menu initialization, set it to current daily volume target
-            subMenuClick = 0;
-            subMenu1Update(0);  //calls subMenu1Update with 0 (no action)
-
-          } else if (subMenuActive == 1) {    //if subMenu1 is already active, execute action from sub menu1 and activate main menu
-
-            subMenuActive = 0;  //deactivate submenu, activate main menus
-            
-            //set daily target variable to subMenuPos;
-            
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("MAX # OF AUTO RESET");
-            lcd.setCursor(0,1);
-            lcd.print("SET TO ");
-            lcd.print(subMenuPos);
-            lcd.print("");
-            menuPos = 6;  //return to previous main menu position
-            
-            delay(1000);
-            updateMenuDisplay(menuPos);
-
-          }
-          
-          break;
-
-        case 71: //master reset
-          
-          if (subMenuActive != 2) {    //if subMenu2 is not active, activate it
-            
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print("RESET ALL ERRORS?");
-            
-            subMenuActive = 2;  //activate subMenu2
-            subMenuPos = 1;     //sub menu initialization, set it to current setting
-            subMenuClick = 0;
-            subMenu2Update(0);  //calls subMenu2Update with zero (no action)
-
-            
-
-          } else if (subMenuActive == 2) {    //if subMenu2 is already active, execute action from sub menu2
-            
-            subMenuActive = 0;  //activate main menus
-            //set daily target variable to subMenuPos;
-
-            lcd.clear();
-            lcd.setCursor(0,0);
-            if (subMenuPos == 1) {
-              lcd.print("RESET COMPLETED");
-              
-            } else {
-              
-            }
-            
-            menuPos = 7; //next menu position;
-            
-            delay(1000);
-            updateMenuDisplay(menuPos);
-            
-          }
-
-          break;
-
-        case 81: //manual drain
-
-          break;
-
-        case 82: //manual fill
-
-          break;
 
         default:
           Serial.print("Main menu case not found: ");
