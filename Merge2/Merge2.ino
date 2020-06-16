@@ -20,6 +20,8 @@ int pasosxseg = 0;
 int contapasos= 0;
 int tiempo1 = 0;
 int tiempo2 = 0;
+int case411 = 0;
+
 
 //LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
@@ -521,6 +523,13 @@ void subMenu1Update(unsigned char encoderAction) { //sub menu type 1 updater: nu
       
     } else if (encoderAction == 2) {  //CW rotation
         Serial.println("Hay rotación");
+        if(case411==1){
+          motor1.step(10);
+          digitalWrite(8, LOW);     // desenergiza todas las bobinas
+          digitalWrite(9, LOW);
+          digitalWrite(10, LOW);
+          digitalWrite(11, LOW);
+        }
 
       if (subMenuPos >= 255) {
         subMenuPos = 1; 
@@ -529,7 +538,14 @@ void subMenu1Update(unsigned char encoderAction) { //sub menu type 1 updater: nu
       }
       
     } else if (encoderAction == 3) {  //CCW rotation
-  
+        Serial.println("Hay Anti-rotación");
+        if(case411==1){
+          motor1.step(-10);
+          digitalWrite(8, LOW);     // desenergiza todas las bobinas
+          digitalWrite(9, LOW);
+          digitalWrite(10, LOW);
+          digitalWrite(11, LOW);
+        }  
       if (subMenuPos <= 1) {
         subMenuPos = 255;
       } else {
@@ -576,7 +592,7 @@ void subMenu11Update(unsigned char encoderAction) { //sub menu type 11 updater: 
         Serial.println("MAXIMO"); 
       } else {
         subMenuPos++;
-        motor1.step(10);
+        motor1.step(100);
         digitalWrite(8, LOW);     // desenergiza todas las bobinas
         digitalWrite(9, LOW);
         digitalWrite(10, LOW);
@@ -591,7 +607,7 @@ void subMenu11Update(unsigned char encoderAction) { //sub menu type 11 updater: 
         Serial.println("Minimo");
       } else {
         subMenuPos--;
-        motor1.step(-10);
+        motor1.step(-100);
         digitalWrite(8, LOW);     // desenergiza todas las bobinas
         digitalWrite(9, LOW);
         digitalWrite(10, LOW);
@@ -887,34 +903,39 @@ void menuAction(unsigned int menuCode) {
 
         case 411:  //MOVER MOTOR MANUAL
         Serial.println("caso411)");
+        case411=1;
 
-        if (subMenuActive != 11) {    //if subMenu1 is not active, activate it
-            Serial.println("vamos a entrar al sub11");
+        if (subMenuActive != 1) {    //if subMenu1 is not active, activate it
+
             lcd.clear();
             lcd.setCursor(0,0);
-            lcd.print("MOV");
-            subMenuActive = 11;    //activate subMenu1
+            Serial.println("Moviendo:");
+            subMenuActive = 1;    //activate subMenu1
             subMenuPos = 0;     //sub menu initialization, set it to current daily volume target
             subMenuClick = 0;
-            subMenu11Update(0);  //calls subMenu11Update with 0 (no action)
+            subMenu1Update(0);  //calls subMenu1Update with 0 (no action)
 
-          } else if (subMenuActive == 11) {    //if subMenu1 is already active, execute action from sub menu1 and activate main menu
+          } else if (subMenuActive == 1) {    //if subMenu1 is already active, execute action from sub menu1 and activate main menu
 
             subMenuActive = 0;  //deactivate submenu, activate main menus
             
             //set daily target variable to subMenuPos;
             
-            Serial.println("nos fuimos");
-            delay(1000);
+            lcd.clear();
+            lcd.setCursor(0,0);
+            lcd.print("Nos fuimos");
+            Serial.println("Nos fuimos");
+            
+            delay(3000);
 
             
+
             menuPos = 4;  //return to previous main menu position
             
             delay(1000);
             updateMenuDisplay(menuPos);
-
+            case411=0;
           }
-        
         break;
 
         

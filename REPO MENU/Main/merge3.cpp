@@ -14,6 +14,10 @@ int val = 0;
 int con = 0;
 int pasos = 0;
 int botoneta = 0;
+int tiempoSegundos = 0;
+int largoTotal = 6000;  //se mide en pasos de motor
+int pasosxseg = 0; 
+int contapasos= 0;
 
 //LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
