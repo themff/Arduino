@@ -26,15 +26,17 @@ void setup() {
 void loop() {
   oled.clearDisplay();      // limpia pantalla
   oled.setTextColor(WHITE);   // establece color al unico disponible (pantalla monocromo)
-  oled.setCursor(0, 0);     // ubica cursor en inicio de coordenadas 0,0
+  oled.setCursor(4, 0);     // ubica cursor en inicio de coordenadas 0,0
   oled.setTextSize(2);      // establece tamano de texto en 1
   oled.print("INC");  // escribe en pantalla el texto
-  oled.setCursor(64, 0);     // ubica cursor en inicio de coordenadas 0,0
+  oled.setCursor(72, 0);     // ubica cursor en inicio de coordenadas 0,0
   oled.setTextSize(2);      // establece tamano de texto en 1
   oled.print("FWE"); 
   oled.setCursor (1, 17);    // ubica cursor en coordenas 10,30
   oled.setTextSize(5);      // establece tamano de texto en 2
   oled.print(millis() / 1000);    // escribe valor de millis() dividido por 1000
-  oled.print(" seg.");      // escribe texto
+  oled.setCursor (66,17);
+  oled.print(millis() / 1000);
+  //oled.print(" seg.");      // escribe texto
   oled.display();     // muestra en pantalla todo lo establecido anteriormente
 }
