@@ -41,6 +41,28 @@ THE SOFTWARE.
 ===============================================
 */
 
+/*MPU 
+VCC +5V
+GND GND
+SCL A5  Rpull up
+SDA A4  Rpull up
+INT D2
+
+DISPLAY
+
+VCC +5V
+GND GND
+SCL A5
+SDA A4
+
+BOTON D12 Rpull Down
+
+
+
+
+
+*/
+
 // I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
 // for both classes must be in the include path of your project
 #include "I2Cdev.h"
